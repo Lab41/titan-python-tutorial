@@ -1,0 +1,157 @@
+#!/usr/bin/env python
+
+import sys
+import os
+import csv
+import re
+import optparse
+
+from bulbs.titan import Config, TitanClient, Graph
+
+DEFAULT_SERVER = 'http://localhost:8182/graphs/graph'
+
+# -----------------------------------------------------------------------------
+
+def parse_csv(csv_reader):
+    # Read in the csv headers.
+    headers = next(csv_reader)
+
+    for row in csv_reader:
+        data = {}
+
+        for i, col in enumerate(row):
+            header = headers[i]
+            data[header] = col
+
+        yield data
+
+def load_dataset_into_graph(
+        graph,
+        csv_reader,
+        edge_src_field,
+        edge_dst_field,
+        edge_label_field,
+        edge_label_default):
+    vertices = {}
+
+    for data in parse_csv(csv_reader):
+        src_id = data[edge_src_field]
+        dst_id = data[edge_dst_field]
+        label = data.get(edge_label_field, edge_label_default)
+
+        # We can't load in a field named 'id'
+        data.pop('id')
+
+        try:
+            src = vertices[src_id]
+        except KeyError:
+            src = vertices[src_id] = graph.vertices.create()
+
+        try:
+            dst = vertices[dst_id]
+        except KeyError:
+            dst = vertices[dst_id] = graph.vertices.create()
+
+        graph.edges.create(src, label, dst, data)
+
+def load_vertices_and_edges_into_graph(
+        graph,
+        vertex_csv_reader,
+        edge_csv_reader,
+        vertex_id_field,
+        edge_src_field,
+        edge_dst_field,
+        edge_label_field,
+        edge_label_default):
+
+    # First load in the vertices. We need to cache each vertex according to the
+    # `vertex_id` field so the edges can find the two vertex objects they are
+    # connecting.
+    vertices = {}
+    for data in parse_csv(vertex_csv_reader):
+        vertex_id = data[vertex_id_field]
+
+        # We can't load in a field named 'id'
+        data.pop('id')
+
+        vertices[vertex_id] = graph.vertices.create(data)
+
+    for data in parse_csv(edge_csv_reader):
+        src = vertices[data[edge_src_field]]
+        dst = vertices[data[edge_dst_field]]
+        label = data.get(edge_label_field, edge_label_default)
+
+        graph.edges.create(src, label, dst, data)
+
+def main(args):
+    parser = optparse.OptionParser()
+    parser.add_option('-u', '--titan-url',
+        default=DEFAULT_SERVER,
+        help='The titan server (defaults to {})'.format(DEFAULT_SERVER))
+    parser.add_option('-d', '--delimiter',
+        default=',',
+        help="The csv delimiter (defaults to ';')")
+    parser.add_option('--id-field',
+        default='id',
+        help="The vertex id field (defaults to 'id')")
+    parser.add_option('--src-field',
+        default='src',
+        help="The edge source field (defaults to 'src')")
+    parser.add_option('--dst-field',
+        default='dst',
+        help="The edge destination field (defaults to 'dst')")
+    parser.add_option('--label-field',
+        default='label',
+        help="The edge label field (defaults to 'label')")
+    parser.add_option('--label-default',
+        help="The edge label default")
+
+    (options, args) = parser.parse_args(args[1:])
+
+    # Connect to the database.
+    config = Config(options.titan_url)
+    graph = Graph(config)
+
+    # Check if we've been passed in a file.
+    if len(args) == 1:
+        csv_filename = args[0]
+
+        with open(csv_filename, 'r') as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=options.delimiter)
+            load_dataset_into_graph(
+                    graph,
+                    csv_reader,
+                    edge_src_field=options.src_field,
+                    edge_dst_field=options.dst_field,
+                    edge_label_field=options.label_field,
+                    edge_label_default=options.label_default,
+            )
+
+    elif len(args) == 2:
+        vertex_csv_filename = args[0]
+        edge_csv_filename = args[1]
+
+        with open(vertex_csv_filename, 'r') as vertex_csv_file:
+            vertex_csv_reader = csv.reader(vertex_csv_file, delimiter=options.delimiter)
+
+            with open(edge_csv_filename, 'r') as edge_csv_file:
+                edge_csv_reader = csv.reader(edge_csv_file, delimiter=options.delimiter)
+
+                load_vertices_and_edges_into_graph(
+                        graph,
+                        vertex_csv_reader,
+                        edge_csv_reader,
+                        vertex_id_field=options.id_field,
+                        edge_src_field=options.src_field,
+                        edge_dst_field=options.dst_field,
+                        edge_label_field=options.label_field,
+                        edge_label_default=options.label_default,
+                )
+    else:
+        print >> sys.stderr, 'please enter in the csv filename'
+        return 1
+
+# -----------------------------------------------------------------------------
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv))
