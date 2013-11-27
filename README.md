@@ -1,49 +1,35 @@
-This is a little tutorial on how to load CSV data from Python into Titan using
-the Python library [Bulbs](http://bulbflow.com/). First we need to set up Xcode
-and Homebrew, which is a nice package manager for OSX:
+This is a little tutorial on how to load CSV data from Python into Titan using the Python library [Bulbs](http://bulbflow.com/). First we need to set up Xcode and Homebrew, which is a nice package manager for OSX:
+
+Setup for OS X
+==============
+
+Install XCode
+-------------
 
 1. Install [Xcode](https://developer.apple.com/xcode)
-
 2. Install Xcode command line tools by:
 
 a. Open Xcode
 b. Open Menu Xcode > Preferences
 c. Open "Downloads" tab and install the Command Line Tools
 
-3. Install [Homebrew](http://brew.sh/):
+Install Python and Bulbs with Homebrew
+--------------------------------------
+
+[Homebrew](http://brew.sh) is a nice open source package manager for OS X. It's pretty simple to install. Be aware you'll be downloading things from the open web:
 
 ```
 % ruby -e "$(curl -fsSL https://raw.github.com/mxcl/homebrew/go)"
-```
-
-Note: there are some security risks here as you will be installing things
-from the open internet. I've never heard of a security violation yet
-though.
-
-4. Open up a terminal and run:
-
-```
 % echo 'export PATH=/usr/local/bin:$PATH' >> .bashrc
 % exec bash
-```
-
-5. Install Python:
-
-```
-% brew install git python
-```
-
-6. Install Bulbs:
-
-```
+% brew install python
 % pip install bulbs
 ```
 
-Second, if you want to start a local Titan instance:
+Download Titan
+--------------
 
-7. Download the [Titan Server](https://github.com/thinkaurelius/titan/wiki/Downloads) package and unzip it
-
-8. Start Titan with:
+Bulbs needs Titan running behind Rexster, so you need to download the [Titan Server](https://github.com/thinkaurelius/titan/wiki/Downloads) package. After downloaded, start it up with:
 
 ```
 % unzip titan-server-0.4.1.zip
@@ -51,16 +37,26 @@ Second, if you want to start a local Titan instance:
 % ./bin/titan.sh start
 ```
 
-Run the script:
+Loading data into Titan
+=======================
+
+The script is pretty straightforward to use. It has two forms. The first accepts a single edge list `.csv` file. It will automatically create empty vertices to connect the edges: 
 
 ```
 % ./load-csv-into-titan data.csv
 ```
 
-It should run without error. If you want to connect to an arbitrary server, run:
+Second is when you provide both a vertex and edge `.csv` file:
+
+```
+% ./load-csv-into-titan vertices.csv edges.csv
+```
+
+By default the script will connect to a locally hosted Titan, but if you want to connect to an arbitrary server, run:
+
 
 ```
 % ./load-csv-into-titan -u http://another.server:1234/graphs/graph data.csv
 ```
 
-That script supports `-h` if you want to see the other options it supports.
+Finally, the script supports a `-h` or `--help` if you want to see the other options it supports.
