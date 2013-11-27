@@ -6,12 +6,11 @@ Setup for OS X
 Install XCode
 -------------
 
-1. Install [Xcode](https://developer.apple.com/xcode)
-2. Install Xcode command line tools by:
-
-a. Open Xcode
-b. Open Menu Xcode > Preferences
-c. Open "Downloads" tab and install the Command Line Tools
+* Install [Xcode](https://developer.apple.com/xcode) through the App Store.
+* Install Xcode command line tools by:
+    * Open Xcode
+    * Open Menu Xcode > Preferences
+    * Open "Downloads" tab and install the Command Line Tools
 
 Install Python and Bulbs with Homebrew
 --------------------------------------
