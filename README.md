@@ -59,3 +59,7 @@ By default the script will connect to a locally hosted Titan, but if you want to
 ```
 
 Finally, the script supports a `-h` or `--help` if you want to see the other options it supports.
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/Lab41/titan-python-tutorial/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
