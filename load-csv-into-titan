@@ -109,7 +109,7 @@ def main(args):
         help='The titan server (defaults to {})'.format(DEFAULT_SERVER))
     parser.add_option('-d', '--delimiter',
         default=',',
-        help="The csv delimiter (defaults to ';')")
+        help="The csv delimiter (defaults to ',')")
     parser.add_option('--id-field',
         default='id',
         help="The vertex id field (defaults to 'id')")
